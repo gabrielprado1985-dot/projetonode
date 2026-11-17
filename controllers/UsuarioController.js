@@ -1,30 +1,50 @@
-const bcrypt = require("bcrypt");
+const apiService =
+    require("../services/Service");
 
-const usuarioModel = require("../model/UsuarioModel");
 
-const criarUsuario = async(req, res) => {
+const consultarCep = async (req, res) => {
+
     try {
-        const {
-            nome, 
-            login,
-            senha
-        } = req.body;
-        
-        const senhaSecreta = await bcrypt.hash(senha);
 
-        await usuarioModel.criarUsuario (
-            nome,
-            login,
-            senhaSecreta
-        );
+        const { cep } = req.params;
 
-        res.status(201).json({
-            mensagem:"Usuário criado com sucesso!"
-        })
+
+        if (!cep) {
+
+            return res.status(400).json({
+                mensagem: "CEP não informado."
+            });
+
+        }
+
+
+        const endereco =
+            await apiService.consultarCep(cep);
+
+
+        if (endereco.erro) {
+
+            return res.status(404).json({
+                mensagem: "CEP não encontrado."
+            });
+
+        }
+
+
+        res.json(endereco);
 
     } catch (erro) {
-        res.status(502).json({
-            mensagem:"Erro ao cadastrar o usuário!"
-        })
+
+        console.error(erro);
+
+        res.status(500).json({
+            mensagem: "Erro ao consultar CEP."
+        });
+
     }
-}
+};
+
+
+module.exports = {
+    consultarCep
+};
